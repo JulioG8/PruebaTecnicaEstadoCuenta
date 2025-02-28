@@ -1,0 +1,13 @@
+﻿@page
+@model EstadoDeCuenta.Web.Pages.Tarjetas.Pagos.RegistrarModel
+
+<h2>Registrar Nuevo Pago</h2>
+
+<form method="post">
+    <div class="form-group">
+        <label for="Monto">Monto del Pago</label>
+        <input type="number" class="form-control" asp-for="NuevoPago.Monto" />
+        <span asp-validation-for="NuevoPago.Monto" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Registrar Pago</button>
+</form>

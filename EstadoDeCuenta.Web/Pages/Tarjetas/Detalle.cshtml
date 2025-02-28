@@ -1,0 +1,358 @@
+﻿@page "{id:int}"
+@model EstadoDeCuenta.Web.Pages.Tarjetas.DetalleModel
+@{
+    ViewData["Title"] = "Detalle del Estado de Cuenta";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="container mt-4">
+    <h2 class="text-center text-primary mb-4">Detalle del Estado de Cuenta</h2>
+
+    <!-- Información de la Tarjeta -->
+    <div class="card shadow-sm mb-4 animate__animated animate__fadeIn">
+        <div class="card-header bg-primary text-white">
+            <h4 class="card-title"><i class="bi bi-credit-card-2-front"></i> Información de la Tarjeta</h4>
+        </div>
+        <div class="card-body">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">
+                    <strong>Nombre del Titular:</strong> @Model.Tarjeta.NombreTitular
+                </li>
+                <li class="list-group-item">
+                    <strong>Número de Tarjeta:</strong> @Model.Tarjeta.NumeroTarjeta
+                </li>
+                <li class="list-group-item">
+                    <strong>Saldo Actual:</strong> $@Model.Tarjeta.SaldoActual
+                </li>
+                <li class="list-group-item">
+                    <strong>Saldo Disponible:</strong> $@Model.Tarjeta.SaldoDisponible
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Cálculos Financieros -->
+    <div class="card shadow-sm mb-4 animate__animated animate__fadeIn">
+        <div class="card-header bg-success text-white">
+            <h4 class="card-title"><i class="bi bi-calculator"></i> Cálculos Financieros</h4>
+        </div>
+        <div class="card-body">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">
+                    <strong>Interés Bonificable:</strong> $@Model.InteresBonificable
+                </li>
+                <li class="list-group-item">
+                    <strong>Cuota Mínima a Pagar:</strong> $@Model.CuotaMinimaPagar
+                </li>
+                <li class="list-group-item">
+                    <strong>Monto Total a Pagar:</strong> $@Model.MontoTotalPagar
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Filtro por Mes y Año -->
+    <div class="card shadow-sm mb-4 animate__animated animate__fadeIn">
+        <div class="card-header bg-info text-white">
+            <h4 class="card-title"><i class="bi bi-funnel"></i> Filtrar por Mes y Año</h4>
+        </div>
+        <div class="card-body">
+            <form method="get" action="">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="mes" class="form-label">Mes:</label>
+                        <select class="form-select" id="mes" name="mes" onchange="filtrarEstadoCuenta()">
+                            <option value="0">Escoja el mes</option>
+                            <option value="1">Enero</option>
+                            <option value="2">Febrero</option>
+                            <option value="3">Marzo</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Mayo</option>
+                            <option value="6">Junio</option>
+                            <option value="7">Julio</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="anio" class="form-label">Año:</label>
+                        <input type="number" class="form-control" id="anio" name="anio" value="2025" onchange="filtrarEstadoCuenta()">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Compras Realizadas -->
+    <div class="card shadow-sm mb-4 animate__animated animate__fadeIn">
+        <div class="card-header bg-warning text-white">
+            <h4 class="card-title"><i class="bi bi-cart"></i> Compras Realizadas</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Descripción</th>
+                        <th>Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var compra in Model.Compras)
+                    {
+                        <tr>
+                            <td>@compra.Fecha.ToShortDateString()</td>
+                            <td>@compra.Descripcion</td>
+                            <td>$@compra.Monto</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagos Realizados -->
+    <div class="card shadow-sm mb-4 animate__animated animate__fadeIn">
+        <div class="card-header bg-danger text-white">
+            <h4 class="card-title"><i class="bi bi-cash-stack"></i> Pagos Realizados</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var pago in Model.Pagos)
+                    {
+                        <tr>
+                            <td>@pago.Fecha.ToShortDateString()</td>
+                            <td>$@pago.Monto</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="text-center mb-4">
+        <!-- Botón para exportar a PDF -->
+        <a class="btn btn-danger mt-3" href="@Url.Page("Detalle", new { id = Model.Tarjeta.Id, handler = "ExportarPDF" })">
+            <i class="bi bi-file-earmark-pdf"></i> Exportar a PDF
+        </a>
+
+        <a class="btn btn-success" asp-page-handler="ExportarExcel">
+            <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+        </a>
+    </div>
+
+
+    <!-- Botón para volver al listado -->
+    <a class="btn btn-secondary mt-3" href="/Tarjetas">
+        <i class="bi bi-arrow-left-circle"></i> Volver al Listado
+    </a>
+</div>
+
+@section Scripts {
+    <script>
+        // Función para filtrar el estado de cuenta
+        function filtrarEstadoCuenta() {
+            const mes = document.getElementById("mes").value;
+            const anio = document.getElementById("anio").value;
+            if (mes > 0 && anio) {
+                Swal.fire({
+                    title: 'Filtrando...',
+                    html: 'Espera un momento',
+                    timer: 2000,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                }).then(() => {
+                    window.location.href = `?Mes=${mes}&Anio=${anio}`;
+                });
+            }
+        }
+                function mostrarAlerta(tipo, mensaje) {
+                Swal.fire({
+                icon: tipo,
+                title: mensaje,
+                showConfirmButton: false,
+                timer: 2000
+            });
+        }
+        @if (TempData["Mensaje"] != null)
+        {
+                <script>
+                    mostrarAlerta('success', '@TempData["Mensaje"]');
+        </script>
+        }
+
+    </script>
+}
+
+
+@* @page "{id:int}"
+@model EstadoDeCuenta.Web.Pages.Tarjetas.DetalleModel
+@{
+    ViewData["Title"] = "Detalle del Estado de Cuenta";
+}
+
+<div class="container mt-4">
+    <h2 class="text-center text-primary mb-4">Detalle del Estado de Cuenta</h2>
+
+    <!-- Información de la Tarjeta -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="card-title">Información de la Tarjeta</h4>
+        </div>
+        <div class="card-body">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">
+                    <strong>Nombre del Titular:</strong> @Model.Tarjeta.NombreTitular
+                </li>
+                <li class="list-group-item">
+                    <strong>Número de Tarjeta:</strong> @Model.Tarjeta.NumeroTarjeta
+                </li>
+                <li class="list-group-item">
+                    <strong>Saldo Actual:</strong> $@Model.Tarjeta.SaldoActual
+                </li>
+                <li class="list-group-item">
+                    <strong>Saldo Disponible:</strong> $@Model.Tarjeta.SaldoDisponible
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Cálculos Financieros -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-success text-white">
+            <h4 class="card-title">Cálculos Financieros</h4>
+        </div>
+        <div class="card-body">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">
+                    <strong>Interés Bonificable:</strong> $@Model.InteresBonificable
+                </li>
+                <li class="list-group-item">
+                    <strong>Cuota Mínima a Pagar:</strong> $@Model.CuotaMinimaPagar
+                </li>
+                <li class="list-group-item">
+                    <strong>Monto Total a Pagar:</strong> $@Model.MontoTotalPagar
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Filtro por Mes y Año -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-info text-white">
+            <h4 class="card-title">Filtrar por Mes y Año</h4>
+        </div>
+        <div class="card-body">
+            <form method="get" action="">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="mes" class="form-label">Mes:</label>
+                        <select class="form-select" id="mes" name="mes" onchange="filtrarEstadoCuenta()">
+                            <option value="0">Escoja el mes</option>
+                            <option value="1">Enero</option>
+                            <option value="2">Febrero</option>
+                            <option value="3">Marzo</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Mayo</option>
+                            <option value="6">Junio</option>
+                            <option value="7">Julio</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="anio" class="form-label">Año:</label>
+                        <input type="number" class="form-control" id="anio" name="anio" value="2025" onchange="filtrarEstadoCuenta()">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Compras Realizadas -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-warning text-white">
+            <h4 class="card-title">Compras Realizadas</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Descripción</th>
+                        <th>Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var compra in Model.Compras)
+                    {
+                        <tr>
+                            <td>@compra.Fecha.ToShortDateString()</td>
+                            <td>@compra.Descripcion</td>
+                            <td>$@compra.Monto</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagos Realizados -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-danger text-white">
+            <h4 class="card-title">Pagos Realizados</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var pago in Model.Pagos)
+                    {
+                        <tr>
+                            <td>@pago.Fecha.ToShortDateString()</td>
+                            <td>$@pago.Monto</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Botón para volver al listado -->
+    <a class="btn btn-secondary mt-3" href="/Tarjetas">
+        <i class="bi bi-arrow-left-circle"></i> Volver al Listado
+    </a>
+</div>
+
+@section Scripts {
+    <script>
+        // Función para filtrar el estado de cuenta
+        function filtrarEstadoCuenta() {
+            const mes = document.getElementById("mes").value;
+            const anio = document.getElementById("anio").value;
+            if (mes > 0 && anio) {
+                window.location.href = `?Mes=${mes}&Anio=${anio}`;
+            }
+        }
+    </script>
+} *@

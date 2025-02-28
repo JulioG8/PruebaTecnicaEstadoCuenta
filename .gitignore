@@ -1,0 +1,15 @@
+# Archivos de Visual Studio
+.vs/
+bin/
+obj/
+*.user
+*.suo
+
+# Archivos de OneDrive
+*.vsidx
+*.tmp
+~$*
+
+# Archivos de configuración
+appsettings.json
+appsettings.Development.json

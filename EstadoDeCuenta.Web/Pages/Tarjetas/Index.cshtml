@@ -1,0 +1,366 @@
+﻿@page
+@model EstadoDeCuenta.Web.Pages.Tarjetas.IndexModel
+@{
+    ViewData["Title"] = "Listado de Tarjetas de Crédito";
+}
+
+<h2 class="text-center mt-4">Listado de Tarjetas de Crédito</h2>
+
+<div class="container mt-4">
+    <div class="row">
+        @foreach (var tarjeta in Model.Tarjetas)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm border-0 animate__animated animate__fadeInUp">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">@tarjeta.NombreTitular</h5>
+                        <p class="card-text">
+                            <strong>Número de Tarjeta:</strong> @tarjeta.NumeroTarjeta<br>
+                            <strong>Saldo Actual:</strong> $@tarjeta.SaldoActual<br>
+                            <strong>Saldo Disponible:</strong> $@tarjeta.SaldoDisponible
+                        </p>
+                        <a class="btn btn-primary w-100 mb-2" asp-page="./Detalle" asp-route-id="@tarjeta.Id">
+                            <i class="bi bi-eye"></i> Ver Estado de Cuenta
+                        </a>
+                        <button class="btn btn-success w-100 mb-2" onclick="abrirModalCompra(@tarjeta.Id)">
+                            <i class="bi bi-cart-plus"></i> Registrar Compra
+                        </button>
+                        <button class="btn btn-warning w-100" onclick="abrirModalPago(@tarjeta.Id)">
+                            <i class="bi bi-credit-card"></i> Registrar Pago
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal para Registrar Compra -->
+<div class="modal fade animate__animated animate__fadeIn" id="modalCompra" tabindex="-1" aria-labelledby="modalCompraLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalCompraLabel">Registrar Compra</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCompra">
+                    <input type="hidden" id="tarjetaCompraId" />
+                    <div class="mb-3">
+                        <label for="descripcion" class="form-label">Descripción</label>
+                        <input type="text" class="form-control" id="descripcion" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="monto" class="form-label">Monto</label>
+                        <input type="number" step="0.01" class="form-control" id="monto" required>
+                    </div>
+                    <button type="button" class="btn btn-primary w-100" onclick="registrarCompra()">
+                        <i class="bi bi-check-circle"></i> Registrar Compra
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Registrar Pago -->
+<div class="modal fade animate__animated animate__fadeIn" id="modalPago" tabindex="-1" aria-labelledby="modalPagoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title" id="modalPagoLabel">Registrar Pago</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formPago">
+                    <input type="hidden" id="tarjetaPagoId" />
+                    <div class="mb-3">
+                        <label for="montoPago" class="form-label">Monto</label>
+                        <input type="number" step="0.01" class="form-control" id="montoPago" required>
+                    </div>
+                    <button type="button" class="btn btn-warning w-100" onclick="registrarPago()">
+                        <i class="bi bi-cash"></i> Registrar Pago
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const baseUrl = "@ViewData["BaseUrl"]";
+
+        // Función para abrir el modal de Compra
+        function abrirModalCompra(tarjetaId) {
+            document.getElementById("tarjetaCompraId").value = tarjetaId;
+            var modal = new bootstrap.Modal(document.getElementById('modalCompra'));
+            modal.show();
+        }
+
+        // Función para abrir el modal de Pago
+        function abrirModalPago(tarjetaId) {
+            document.getElementById("tarjetaPagoId").value = tarjetaId;
+            var modal = new bootstrap.Modal(document.getElementById('modalPago'));
+            modal.show();
+        }
+
+        // Función para registrar Compra
+        async function registrarCompra() {
+            const data = {
+                descripcion: document.getElementById("descripcion").value,
+                monto: parseFloat(document.getElementById("monto").value),
+                tarjetaCreditoId: parseInt(document.getElementById("tarjetaCompraId").value)
+            };
+
+            const response = await fetch(`${baseUrl}Compras`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Compra registrada!',
+                    text: 'La compra ha sido registrada exitosamente.',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                setTimeout(() => location.reload(), 1600);
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Ocurrió un problema al registrar la compra.',
+                });
+            }
+        }
+
+        // Función para registrar Pago
+        async function registrarPago() {
+            const data = {
+                monto: parseFloat(document.getElementById("montoPago").value),
+                tarjetaCreditoId: parseInt(document.getElementById("tarjetaPagoId").value)
+            };
+
+            const response = await fetch(`${baseUrl}Pagos`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Pago registrado!',
+                    text: 'El pago ha sido registrado exitosamente.',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                setTimeout(() => location.reload(), 1600);
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Ocurrió un problema al registrar el pago.',
+                });
+            }
+        }
+    </script>
+}
+
+
+
+@* @page
+@model EstadoDeCuenta.Web.Pages.Tarjetas.IndexModel
+@{
+    ViewData["Title"] = "Listado de Tarjetas de Crédito";
+}
+
+<h2>Listado de Tarjetas de Crédito</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nombre del Titular</th>
+            <th>Número de Tarjeta</th>
+            <th>Saldo Actual</th>
+            <th>Saldo Disponible</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var tarjeta in Model.Tarjetas)
+        {
+            <tr>
+                <td>@tarjeta.NombreTitular</td>
+                <td>@tarjeta.NumeroTarjeta</td>
+                <td>@tarjeta.SaldoActual</td>
+                <td>@tarjeta.SaldoDisponible</td>
+                <td>
+                    <a class="btn btn-primary" asp-page="./Detalle" asp-route-id="@tarjeta.Id">Ver Estado de Cuenta</a>
+                    <button class="btn btn-success" onclick="abrirModalCompra(@tarjeta.Id)">Registrar Compra</button>
+                    <button class="btn btn-warning" onclick="abrirModalPago(@tarjeta.Id)">Registrar Pago</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Modal para Registrar Compra -->
+<div class="modal fade" id="modalCompra" tabindex="-1" aria-labelledby="modalCompraLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCompraLabel">Registrar Compra</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCompra">
+                    <input type="hidden" id="tarjetaCompraId" />
+                    <div class="mb-3">
+                        <label for="descripcion" class="form-label">Descripción</label>
+                        <input type="text" class="form-control" id="descripcion" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="monto" class="form-label">Monto</label>
+                        <input type="number" step="0.01" class="form-control" id="monto" required>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="registrarCompra()">Registrar Compra</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Registrar Pago -->
+<div class="modal fade" id="modalPago" tabindex="-1" aria-labelledby="modalPagoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalPagoLabel">Registrar Pago</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formPago">
+                    <input type="hidden" id="tarjetaPagoId" />
+                    <div class="mb-3">
+                        <label for="montoPago" class="form-label">Monto</label>
+                        <input type="number" step="0.01" class="form-control" id="montoPago" required>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="registrarPago()">Registrar Pago</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Función para abrir el modal de Compra
+        function abrirModalCompra(tarjetaId) {
+            document.getElementById("tarjetaCompraId").value = tarjetaId;
+            var modal = new bootstrap.Modal(document.getElementById('modalCompra'));
+            modal.show();
+        }
+
+        // Función para abrir el modal de Pago
+        function abrirModalPago(tarjetaId) {
+            document.getElementById("tarjetaPagoId").value = tarjetaId;
+            var modal = new bootstrap.Modal(document.getElementById('modalPago'));
+            modal.show();
+        }
+                // Función para registrar Compra
+        const baseUrl = "@ViewData["BaseUrl"]";
+
+        async function registrarCompra() {
+            const data = {
+                descripcion: document.getElementById("descripcion").value,
+                monto: parseFloat(document.getElementById("monto").value),
+                tarjetaCreditoId: parseInt(document.getElementById("tarjetaCompraId").value)
+            };
+
+            const response = await fetch(`${baseUrl}Compras`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                alert("Compra registrada exitosamente.");
+                location.reload();
+            } else {
+                alert("Error al registrar la compra.");
+            }
+        }
+
+
+        // Función para registrar Pago
+        async function registrarPago() {
+            const data = {
+                monto: parseFloat(document.getElementById("montoPago").value),
+                tarjetaCreditoId: parseInt(document.getElementById("tarjetaPagoId").value)
+            };
+
+            const response = await fetch(`${baseUrl}Pagos`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                alert("Pago registrado exitosamente.");
+                location.reload();
+            } else {
+                alert("Error al registrar el pago.");
+            }
+        }
+    </script>
+} *@
+
+
+@* @page
+@model EstadoDeCuenta.Web.Pages.Tarjetas.IndexModel
+@{
+    ViewData["Title"] = "Listado de Tarjetas de Crédito";
+}
+
+<h2>Listado de Tarjetas de Crédito</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nombre del Titular</th>
+            <th>Número de Tarjeta</th>
+            <th>Saldo Actual</th>
+            <th>Saldo Disponible</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var tarjeta in Model.Tarjetas)
+        {
+            <tr>
+                <td>@tarjeta.NombreTitular</td>
+                <td>@tarjeta.NumeroTarjeta</td>
+                <td>@tarjeta.SaldoActual</td>
+                <td>@tarjeta.SaldoDisponible</td>
+                <td>
+                    <a class="btn btn-primary" asp-page="./Detalle" asp-route-id="@tarjeta.Id">Ver Estado de Cuenta</a>
+                    <button class="btn btn-success" onclick="abrirModalCompra(@tarjeta.Id)">Registrar Compra</button>
+                    <button class="btn btn-warning" onclick="abrirModalPago(@tarjeta.Id)">Registrar Pago</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+ *@
